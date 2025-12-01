@@ -57,7 +57,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .single()
 
       if (data) {
-        const org = data.organization_members?.[0]?.organization
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const orgMember = data.organization_members?.[0] as any
+        const org = orgMember?.organization
         setUser({
           id: data.id,
           email: data.email,
