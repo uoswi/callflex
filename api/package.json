@@ -5,14 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsup src/index.ts --format esm --dts",
+    "build": "tsup src/index.ts --format esm --no-external hono @hono/node-server",
     "start": "node dist/index.js",
     "lint": "eslint src/"
   },
   "dependencies": {
     "@hono/node-server": "^1.13.1",
     "@supabase/supabase-js": "^2.45.4",
-    "dotenv": "^17.2.3",
     "hono": "^4.6.3",
     "resend": "^4.0.0",
     "stripe": "^16.12.0",
@@ -21,6 +20,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.16.10",
+    "dotenv": "^17.2.3",
     "@typescript-eslint/eslint-plugin": "^7.18.0",
     "@typescript-eslint/parser": "^7.18.0",
     "eslint": "^8.57.1",
