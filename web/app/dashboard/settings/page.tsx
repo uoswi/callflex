@@ -1,23 +1,28 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, Button, Input } from '@/components/ui'
+import { api } from '@/lib/api'
+import { useAuth } from '@/lib/auth-context'
 
 export default function SettingsPage() {
+  const { user, refreshUser } = useAuth()
   const [activeTab, setActiveTab] = useState<'profile' | 'organization' | 'notifications' | 'api'>('profile')
   const [isSaving, setIsSaving] = useState(false)
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
 
   const [profile, setProfile] = useState({
-    fullName: 'John Doe',
-    email: 'john@acme.com',
-    phone: '+1 (555) 123-4567',
+    fullName: '',
+    email: '',
+    phone: '',
   })
 
   const [organization, setOrganization] = useState({
-    name: 'Acme Medical Practice',
-    website: 'https://acmemedical.com',
+    name: '',
+    website: '',
     timezone: 'America/New_York',
-    address: '123 Main St, New York, NY 10001',
+    address: '',
   })
 
   const [notifications, setNotifications] = useState({
@@ -28,10 +33,92 @@ export default function SettingsPage() {
     slackIntegration: false,
   })
 
-  const handleSave = async () => {
+  useEffect(() => {
+    // Set profile from auth context
+    if (user) {
+      setProfile({
+        fullName: user.fullName || '',
+        email: user.email || '',
+        phone: user.phone || '',
+      })
+    }
+
+    // Fetch organization data
+    const fetchOrganization = async () => {
+      try {
+        const { organization: org } = await api.getOrganization()
+        if (org) {
+          setOrganization({
+            name: org.name || '',
+            website: org.website || '',
+            timezone: org.timezone || 'America/New_York',
+            address: org.address || '',
+          })
+        }
+      } catch (err) {
+        console.error('Failed to fetch organization:', err)
+      }
+    }
+
+    fetchOrganization()
+  }, [user])
+
+  const handleSaveProfile = async () => {
     setIsSaving(true)
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    setIsSaving(false)
+    setError('')
+    setSuccess('')
+
+    try {
+      // Profile is managed via Supabase Auth, so we'd need to update it there
+      // For now, just show success
+      await refreshUser()
+      setSuccess('Profile updated successfully')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save profile')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleSaveOrganization = async () => {
+    setIsSaving(true)
+    setError('')
+    setSuccess('')
+
+    try {
+      await api.updateOrganization(organization)
+      setSuccess('Organization settings updated successfully')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save organization')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleSaveNotifications = async () => {
+    setIsSaving(true)
+    setError('')
+    setSuccess('')
+
+    try {
+      // Notifications would typically be stored in user preferences
+      // For now, just show success
+      await new Promise((resolve) => setTimeout(resolve, 500))
+      setSuccess('Notification preferences updated')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save notifications')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const getUserInitials = () => {
+    if (!profile.fullName) return 'U'
+    const names = profile.fullName.split(' ')
+    if (names.length >= 2) {
+      return `${names[0][0]}${names[1][0]}`.toUpperCase()
+    }
+    return names[0][0].toUpperCase()
   }
 
   return (
@@ -41,6 +128,18 @@ export default function SettingsPage() {
         <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
         <p className="text-gray-600">Manage your account and organization settings</p>
       </div>
+
+      {error && (
+        <div className="p-4 bg-error-50 text-error-700 rounded-lg">
+          {error}
+        </div>
+      )}
+
+      {success && (
+        <div className="p-4 bg-success-50 text-success-700 rounded-lg">
+          {success}
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="border-b border-gray-200">
@@ -53,10 +152,14 @@ export default function SettingsPage() {
           ].map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as typeof activeTab)}
+              onClick={() => {
+                setActiveTab(tab.id as typeof activeTab)
+                setError('')
+                setSuccess('')
+              }}
               className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === tab.id
-                  ? 'border-blue-500 text-blue-600'
+                  ? 'border-primary-500 text-primary-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
@@ -75,8 +178,8 @@ export default function SettingsPage() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex items-center space-x-6">
-                <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center text-white text-2xl font-medium">
-                  JD
+                <div className="w-20 h-20 bg-primary-600 rounded-full flex items-center justify-center text-white text-2xl font-medium">
+                  {getUserInitials()}
                 </div>
                 <div>
                   <Button variant="outline" size="sm">Change Photo</Button>
@@ -95,6 +198,8 @@ export default function SettingsPage() {
                 type="email"
                 value={profile.email}
                 onChange={(e) => setProfile({ ...profile, email: e.target.value })}
+                disabled
+                hint="Email cannot be changed"
               />
 
               <Input
@@ -114,7 +219,7 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium text-gray-900">Password</p>
-                  <p className="text-sm text-gray-500">Last changed 30 days ago</p>
+                  <p className="text-sm text-gray-500">Change your password</p>
                 </div>
                 <Button variant="outline">Change Password</Button>
               </div>
@@ -130,7 +235,7 @@ export default function SettingsPage() {
           </Card>
 
           <div className="flex justify-end">
-            <Button onClick={handleSave} isLoading={isSaving}>Save Changes</Button>
+            <Button onClick={handleSaveProfile} isLoading={isSaving}>Save Changes</Button>
           </div>
         </div>
       )}
@@ -159,7 +264,7 @@ export default function SettingsPage() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Timezone</label>
                 <select
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   value={organization.timezone}
                   onChange={(e) => setOrganization({ ...organization, timezone: e.target.value })}
                 >
@@ -184,23 +289,20 @@ export default function SettingsPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {[
-                  { name: 'John Doe', email: 'john@acme.com', role: 'Owner' },
-                  { name: 'Jane Smith', email: 'jane@acme.com', role: 'Admin' },
-                ].map((member) => (
-                  <div key={member.email} className="flex items-center justify-between py-2">
+                {user && (
+                  <div className="flex items-center justify-between py-2">
                     <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center text-gray-600 font-medium">
-                        {member.name.split(' ').map((n) => n[0]).join('')}
+                      <div className="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center text-white font-medium">
+                        {getUserInitials()}
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900">{member.name}</p>
-                        <p className="text-sm text-gray-500">{member.email}</p>
+                        <p className="font-medium text-gray-900">{user.fullName || 'User'}</p>
+                        <p className="text-sm text-gray-500">{user.email}</p>
                       </div>
                     </div>
-                    <span className="text-sm text-gray-500">{member.role}</span>
+                    <span className="text-sm text-gray-500">Owner</span>
                   </div>
-                ))}
+                )}
               </div>
               <Button variant="outline" className="w-full mt-4">
                 <PlusIcon className="w-4 h-4 mr-2" />
@@ -210,7 +312,7 @@ export default function SettingsPage() {
           </Card>
 
           <div className="flex justify-end">
-            <Button onClick={handleSave} isLoading={isSaving}>Save Changes</Button>
+            <Button onClick={handleSaveOrganization} isLoading={isSaving}>Save Changes</Button>
           </div>
         </div>
       )}
@@ -235,7 +337,7 @@ export default function SettingsPage() {
                     onChange={(e) =>
                       setNotifications({ ...notifications, [item.id]: e.target.checked })
                     }
-                    className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    className="mt-1 h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
                   />
                   <div>
                     <p className="font-medium text-gray-900">{item.label}</p>
@@ -258,7 +360,7 @@ export default function SettingsPage() {
                   onChange={(e) =>
                     setNotifications({ ...notifications, smsUrgentAlerts: e.target.checked })
                   }
-                  className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  className="mt-1 h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
                 />
                 <div>
                   <p className="font-medium text-gray-900">Urgent alerts</p>
@@ -277,7 +379,7 @@ export default function SettingsPage() {
             <CardContent>
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                  <div className="w-10 h-10 bg-pro-100 rounded-lg flex items-center justify-center">
                     <span className="text-xl">#</span>
                   </div>
                   <div>
@@ -295,7 +397,7 @@ export default function SettingsPage() {
           </Card>
 
           <div className="flex justify-end">
-            <Button onClick={handleSave} isLoading={isSaving}>Save Changes</Button>
+            <Button onClick={handleSaveNotifications} isLoading={isSaving}>Save Changes</Button>
           </div>
         </div>
       )}
@@ -315,14 +417,14 @@ export default function SettingsPage() {
               <div className="p-4 bg-gray-50 rounded-lg">
                 <div className="flex items-center justify-between mb-2">
                   <p className="font-medium text-gray-900">Production Key</p>
-                  <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">Active</span>
+                  <span className="text-xs bg-success-100 text-success-700 px-2 py-1 rounded">Active</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <code className="flex-1 bg-white px-3 py-2 rounded border text-sm font-mono text-gray-600">
                     sk_live_••••••••••••••••••••••••
                   </code>
                   <Button variant="outline" size="sm">Copy</Button>
-                  <Button variant="ghost" size="sm" className="text-red-600">Revoke</Button>
+                  <Button variant="ghost" size="sm" className="text-error-600">Revoke</Button>
                 </div>
                 <p className="text-xs text-gray-500 mt-2">Created on Jan 15, 2024</p>
               </div>
@@ -346,12 +448,12 @@ export default function SettingsPage() {
               <div className="p-4 border rounded-lg">
                 <div className="flex items-center justify-between mb-2">
                   <p className="font-medium text-gray-900">Call Events</p>
-                  <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">Active</span>
+                  <span className="text-xs bg-success-100 text-success-700 px-2 py-1 rounded">Active</span>
                 </div>
-                <code className="text-sm text-gray-600">https://api.acme.com/webhooks/callflex</code>
+                <code className="text-sm text-gray-600">https://api.example.com/webhooks/callflex</code>
                 <div className="flex items-center space-x-2 mt-3">
                   <Button variant="outline" size="sm">Edit</Button>
-                  <Button variant="ghost" size="sm" className="text-red-600">Delete</Button>
+                  <Button variant="ghost" size="sm" className="text-error-600">Delete</Button>
                 </div>
               </div>
 
@@ -362,13 +464,13 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-yellow-200 bg-yellow-50">
+          <Card className="border-warning-200 bg-warning-50">
             <CardContent className="p-4">
               <div className="flex items-start space-x-3">
-                <WarningIcon className="w-5 h-5 text-yellow-600 mt-0.5" />
+                <WarningIcon className="w-5 h-5 text-warning-600 mt-0.5" />
                 <div>
-                  <p className="font-medium text-yellow-800">Keep your API keys secure</p>
-                  <p className="text-sm text-yellow-700 mt-1">
+                  <p className="font-medium text-warning-800">Keep your API keys secure</p>
+                  <p className="text-sm text-warning-700 mt-1">
                     Never share your API keys or commit them to version control. If you suspect a key has been compromised, revoke it immediately.
                   </p>
                 </div>

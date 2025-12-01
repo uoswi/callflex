@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle, Button, Input } from '@/components/ui'
+import { api } from '@/lib/api'
 
 interface Template {
   id: string
@@ -16,6 +17,58 @@ interface Template {
 
 type Step = 'template' | 'configure' | 'customize'
 
+// Default templates in case API fails or returns empty
+const defaultTemplates: Template[] = [
+  {
+    id: 'medical-office',
+    name: 'Medical Office',
+    industry: 'Healthcare',
+    description: 'Perfect for medical practices, clinics, and healthcare providers. Handles appointment scheduling, patient inquiries, and after-hours calls.',
+    features: ['Appointment scheduling', 'Patient inquiries', 'Insurance questions', 'Prescription refills'],
+    popularity: 95,
+  },
+  {
+    id: 'law-firm',
+    name: 'Law Firm',
+    industry: 'Legal',
+    description: 'Designed for law offices to screen potential clients, schedule consultations, and handle general inquiries professionally.',
+    features: ['Client intake', 'Consultation scheduling', 'Case status updates', 'Emergency routing'],
+    popularity: 88,
+  },
+  {
+    id: 'real-estate',
+    name: 'Real Estate',
+    industry: 'Real Estate',
+    description: 'Ideal for real estate agents and brokerages. Captures leads, schedules showings, and provides property information.',
+    features: ['Lead capture', 'Showing scheduling', 'Property inquiries', 'Agent routing'],
+    popularity: 82,
+  },
+  {
+    id: 'home-services',
+    name: 'Home Services',
+    industry: 'Services',
+    description: 'Built for HVAC, plumbing, electrical, and other home service businesses. Books appointments and handles service requests.',
+    features: ['Service booking', 'Emergency dispatch', 'Quote requests', 'Follow-up calls'],
+    popularity: 79,
+  },
+  {
+    id: 'dental-office',
+    name: 'Dental Office',
+    industry: 'Healthcare',
+    description: 'Specialized for dental practices. Manages appointments, handles insurance verification, and patient reminders.',
+    features: ['Appointment booking', 'Insurance verification', 'Procedure inquiries', 'Emergency routing'],
+    popularity: 85,
+  },
+  {
+    id: 'custom',
+    name: 'Custom',
+    industry: 'Any',
+    description: 'Start from scratch with a blank template. Perfect for unique business needs or specialized industries.',
+    features: ['Fully customizable', 'Any industry', 'Custom workflows', 'Flexible prompts'],
+    popularity: 70,
+  },
+]
+
 export default function NewAssistantPage() {
   const router = useRouter()
   const [step, setStep] = useState<Step>('template')
@@ -23,6 +76,7 @@ export default function NewAssistantPage() {
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
+  const [error, setError] = useState('')
   const [config, setConfig] = useState({
     name: '',
     greeting: '',
@@ -32,61 +86,32 @@ export default function NewAssistantPage() {
       start: '09:00',
       end: '17:00',
     },
+    features: {
+      voicemail: true,
+      transfer: true,
+      sms: false,
+      transcription: true,
+    },
   })
 
   useEffect(() => {
-    // TODO: Fetch from API
-    setTemplates([
-      {
-        id: '1',
-        name: 'Medical Office',
-        industry: 'Healthcare',
-        description: 'Perfect for medical practices, clinics, and healthcare providers. Handles appointment scheduling, patient inquiries, and after-hours calls.',
-        features: ['Appointment scheduling', 'Patient inquiries', 'Insurance questions', 'Prescription refills'],
-        popularity: 95,
-      },
-      {
-        id: '2',
-        name: 'Law Firm',
-        industry: 'Legal',
-        description: 'Designed for law offices to screen potential clients, schedule consultations, and handle general inquiries professionally.',
-        features: ['Client intake', 'Consultation scheduling', 'Case status updates', 'Emergency routing'],
-        popularity: 88,
-      },
-      {
-        id: '3',
-        name: 'Real Estate',
-        industry: 'Real Estate',
-        description: 'Ideal for real estate agents and brokerages. Captures leads, schedules showings, and provides property information.',
-        features: ['Lead capture', 'Showing scheduling', 'Property inquiries', 'Agent routing'],
-        popularity: 82,
-      },
-      {
-        id: '4',
-        name: 'Home Services',
-        industry: 'Services',
-        description: 'Built for HVAC, plumbing, electrical, and other home service businesses. Books appointments and handles service requests.',
-        features: ['Service booking', 'Emergency dispatch', 'Quote requests', 'Follow-up calls'],
-        popularity: 79,
-      },
-      {
-        id: '5',
-        name: 'Dental Office',
-        industry: 'Healthcare',
-        description: 'Specialized for dental practices. Manages appointments, handles insurance verification, and patient reminders.',
-        features: ['Appointment booking', 'Insurance verification', 'Procedure inquiries', 'Emergency routing'],
-        popularity: 85,
-      },
-      {
-        id: '6',
-        name: 'Custom',
-        industry: 'Any',
-        description: 'Start from scratch with a blank template. Perfect for unique business needs or specialized industries.',
-        features: ['Fully customizable', 'Any industry', 'Custom workflows', 'Flexible prompts'],
-        popularity: 70,
-      },
-    ])
-    setIsLoading(false)
+    const fetchTemplates = async () => {
+      try {
+        const { templates: data } = await api.getTemplates()
+        if (data && data.length > 0) {
+          setTemplates(data)
+        } else {
+          setTemplates(defaultTemplates)
+        }
+      } catch (error) {
+        console.error('Failed to fetch templates:', error)
+        setTemplates(defaultTemplates)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchTemplates()
   }, [])
 
   const handleTemplateSelect = (template: Template) => {
@@ -101,13 +126,23 @@ export default function NewAssistantPage() {
 
   const handleSave = async () => {
     setIsSaving(true)
+    setError('')
+
     try {
-      // TODO: Save to API
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      await api.createAssistant({
+        name: config.name,
+        template_id: selectedTemplate?.id,
+        template_name: selectedTemplate?.name,
+        greeting: config.greeting,
+        voice: config.voice,
+        transfer_number: config.transferNumber,
+        business_hours: config.businessHours,
+        features: config.features,
+        status: 'draft',
+      })
       router.push('/dashboard/assistants')
-    } catch (error) {
-      console.error('Failed to create assistant:', error)
-    } finally {
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create assistant')
       setIsSaving(false)
     }
   }
@@ -115,7 +150,7 @@ export default function NewAssistantPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" />
       </div>
     )
   }
@@ -133,10 +168,10 @@ export default function NewAssistantPage() {
             <div
               className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                 step === s.key
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-primary-600 text-white'
                   : ['template'].indexOf(step) < ['template', 'configure', 'customize'].indexOf(s.key)
                   ? 'bg-gray-200 text-gray-500'
-                  : 'bg-green-500 text-white'
+                  : 'bg-success-500 text-white'
               }`}
             >
               {i + 1}
@@ -148,6 +183,12 @@ export default function NewAssistantPage() {
           </div>
         ))}
       </div>
+
+      {error && (
+        <div className="p-4 bg-error-50 text-error-700 rounded-lg">
+          {error}
+        </div>
+      )}
 
       {/* Step 1: Template Selection */}
       {step === 'template' && (
@@ -161,8 +202,8 @@ export default function NewAssistantPage() {
             {templates.map((template) => (
               <Card
                 key={template.id}
-                className={`cursor-pointer transition-all hover:border-blue-300 ${
-                  selectedTemplate?.id === template.id ? 'border-blue-500 ring-2 ring-blue-200' : ''
+                className={`cursor-pointer transition-all hover:border-primary-300 ${
+                  selectedTemplate?.id === template.id ? 'border-primary-500 ring-2 ring-primary-200' : ''
                 }`}
                 onClick={() => handleTemplateSelect(template)}
               >
@@ -172,7 +213,7 @@ export default function NewAssistantPage() {
                       <h3 className="font-semibold text-gray-900">{template.name}</h3>
                       <span className="text-xs text-gray-500">{template.industry}</span>
                     </div>
-                    <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">
+                    <span className="text-xs text-success-600 bg-success-50 px-2 py-1 rounded-full">
                       {template.popularity}% match
                     </span>
                   </div>
@@ -236,7 +277,7 @@ export default function NewAssistantPage() {
                       type="button"
                       className={`p-3 border rounded-lg text-left transition-colors ${
                         config.voice === voice.id
-                          ? 'border-blue-500 bg-blue-50'
+                          ? 'border-primary-500 bg-primary-50'
                           : 'border-gray-200 hover:border-gray-300'
                       }`}
                       onClick={() => setConfig({ ...config, voice: voice.id })}
@@ -251,7 +292,7 @@ export default function NewAssistantPage() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Greeting Message</label>
                 <textarea
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   rows={3}
                   placeholder="What should your assistant say when answering?"
                   value={config.greeting}
@@ -297,7 +338,7 @@ export default function NewAssistantPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Opens at</label>
                   <input
                     type="time"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     value={config.businessHours.start}
                     onChange={(e) =>
                       setConfig({
@@ -311,7 +352,7 @@ export default function NewAssistantPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Closes at</label>
                   <input
                     type="time"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     value={config.businessHours.end}
                     onChange={(e) =>
                       setConfig({
@@ -338,32 +379,34 @@ export default function NewAssistantPage() {
                   id: 'voicemail',
                   title: 'Take voicemails',
                   description: 'Allow callers to leave a voicemail when needed',
-                  defaultChecked: true,
                 },
                 {
                   id: 'transfer',
                   title: 'Allow call transfers',
                   description: 'Let the assistant transfer calls to your team',
-                  defaultChecked: true,
                 },
                 {
                   id: 'sms',
                   title: 'Send SMS confirmations',
                   description: 'Text callers to confirm appointments or provide info',
-                  defaultChecked: false,
                 },
                 {
                   id: 'transcription',
                   title: 'Transcribe all calls',
                   description: 'Save transcripts for every call',
-                  defaultChecked: true,
                 },
               ].map((option) => (
                 <label key={option.id} className="flex items-start space-x-3 cursor-pointer">
                   <input
                     type="checkbox"
-                    defaultChecked={option.defaultChecked}
-                    className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    checked={config.features[option.id as keyof typeof config.features]}
+                    onChange={(e) =>
+                      setConfig({
+                        ...config,
+                        features: { ...config.features, [option.id]: e.target.checked },
+                      })
+                    }
+                    className="mt-1 h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
                   />
                   <div>
                     <p className="font-medium text-gray-900">{option.title}</p>

@@ -3,12 +3,14 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Card, CardContent, Button } from '@/components/ui'
+import { api } from '@/lib/api'
 
 interface PhoneNumber {
   id: string
   number: string
   friendly_name: string
   assistant_name?: string
+  assistant_id?: string
   status: 'active' | 'inactive'
   calls_count: number
   created_at: string
@@ -19,34 +21,25 @@ export default function PhoneNumbersPage() {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // TODO: Fetch from API
-    setPhoneNumbers([
-      {
-        id: '1',
-        number: '+1 (555) 987-6543',
-        friendly_name: 'Main Line',
-        assistant_name: 'Front Desk',
-        status: 'active',
-        calls_count: 145,
-        created_at: '2024-01-10',
-      },
-      {
-        id: '2',
-        number: '+1 (555) 123-4567',
-        friendly_name: 'After Hours',
-        assistant_name: 'After Hours Support',
-        status: 'active',
-        calls_count: 89,
-        created_at: '2024-01-15',
-      },
-    ])
-    setIsLoading(false)
+    const fetchPhoneNumbers = async () => {
+      try {
+        const { phoneNumbers: data } = await api.getPhoneNumbers()
+        setPhoneNumbers(data || [])
+      } catch (error) {
+        console.error('Failed to fetch phone numbers:', error)
+        setPhoneNumbers([])
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchPhoneNumbers()
   }, [])
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" />
       </div>
     )
   }
@@ -90,8 +83,8 @@ export default function PhoneNumbersPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                      <PhoneIcon className="w-6 h-6 text-green-600" />
+                    <div className="w-12 h-12 bg-success-100 rounded-lg flex items-center justify-center">
+                      <PhoneIcon className="w-6 h-6 text-success-600" />
                     </div>
                     <div>
                       <div className="flex items-center space-x-3">
@@ -99,7 +92,7 @@ export default function PhoneNumbersPage() {
                         <span
                           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                             phone.status === 'active'
-                              ? 'bg-green-100 text-green-700'
+                              ? 'bg-success-100 text-success-700'
                               : 'bg-gray-100 text-gray-700'
                           }`}
                         >
@@ -117,7 +110,7 @@ export default function PhoneNumbersPage() {
                     </div>
                     <div className="text-center">
                       <p className="text-sm text-gray-500">Calls</p>
-                      <p className="font-medium text-gray-900">{phone.calls_count}</p>
+                      <p className="font-medium text-gray-900">{phone.calls_count || 0}</p>
                     </div>
                     <Link href={`/dashboard/phone-numbers/${phone.id}`}>
                       <Button variant="outline">Configure</Button>
@@ -131,15 +124,15 @@ export default function PhoneNumbersPage() {
       )}
 
       {/* Info Card */}
-      <Card className="bg-blue-50 border-blue-200">
+      <Card className="bg-primary-50 border-primary-200">
         <CardContent className="p-6">
           <div className="flex items-start space-x-4">
-            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-              <InfoIcon className="w-5 h-5 text-blue-600" />
+            <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center flex-shrink-0">
+              <InfoIcon className="w-5 h-5 text-primary-600" />
             </div>
             <div>
-              <h4 className="font-medium text-blue-900">Phone Number Pricing</h4>
-              <p className="text-blue-700 text-sm mt-1">
+              <h4 className="font-medium text-primary-900">Phone Number Pricing</h4>
+              <p className="text-primary-700 text-sm mt-1">
                 Local numbers are $2/month. Toll-free numbers are $3/month. All incoming calls are charged at $0.02/minute.
               </p>
             </div>

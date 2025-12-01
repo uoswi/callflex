@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Card, CardContent, Button } from '@/components/ui'
+import { api } from '@/lib/api'
 
 interface Assistant {
   id: string
@@ -18,35 +19,19 @@ export default function AssistantsPage() {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // TODO: Fetch from API
-    // For now, use mock data
-    setAssistants([
-      {
-        id: '1',
-        name: 'Front Desk Assistant',
-        template_name: 'Medical Office',
-        status: 'active',
-        calls_count: 145,
-        created_at: '2024-01-15',
-      },
-      {
-        id: '2',
-        name: 'After Hours Support',
-        template_name: 'Law Firm',
-        status: 'active',
-        calls_count: 89,
-        created_at: '2024-01-20',
-      },
-      {
-        id: '3',
-        name: 'Sales Inquiry Bot',
-        template_name: 'Real Estate',
-        status: 'draft',
-        calls_count: 0,
-        created_at: '2024-02-01',
-      },
-    ])
-    setIsLoading(false)
+    const fetchAssistants = async () => {
+      try {
+        const { assistants: data } = await api.getAssistants()
+        setAssistants(data || [])
+      } catch (error) {
+        console.error('Failed to fetch assistants:', error)
+        setAssistants([])
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchAssistants()
   }, [])
 
   const getStatusColor = (status: string) => {
@@ -65,7 +50,7 @@ export default function AssistantsPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" />
       </div>
     )
   }
@@ -106,11 +91,11 @@ export default function AssistantsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {assistants.map((assistant) => (
             <Link key={assistant.id} href={`/dashboard/assistants/${assistant.id}`}>
-              <Card className="hover:border-blue-300 transition-colors cursor-pointer h-full">
+              <Card className="hover:border-primary-300 transition-colors cursor-pointer h-full">
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between mb-4">
-                    <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <BotIcon className="w-6 h-6 text-blue-600" />
+                    <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center">
+                      <BotIcon className="w-6 h-6 text-primary-600" />
                     </div>
                     <span
                       className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
@@ -121,11 +106,11 @@ export default function AssistantsPage() {
                     </span>
                   </div>
                   <h3 className="font-semibold text-gray-900 mb-1">{assistant.name}</h3>
-                  <p className="text-sm text-gray-500 mb-4">Based on {assistant.template_name}</p>
+                  <p className="text-sm text-gray-500 mb-4">Based on {assistant.template_name || 'Custom'}</p>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-gray-500">
                       <PhoneIcon className="w-4 h-4 inline mr-1" />
-                      {assistant.calls_count} calls
+                      {assistant.calls_count || 0} calls
                     </span>
                     <span className="text-gray-400">
                       Created {new Date(assistant.created_at).toLocaleDateString()}

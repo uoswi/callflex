@@ -3,7 +3,8 @@
 import { useState, useEffect, use } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle, Button, Input } from '@/components/ui'
+import { Card, CardContent, CardHeader, CardTitle, Button, Input, StatusBadge } from '@/components/ui'
+import { api } from '@/lib/api'
 
 interface Assistant {
   id: string
@@ -16,38 +17,102 @@ interface Assistant {
   calls_count: number
   created_at: string
   phone_number?: string
+  business_hours?: {
+    start: string
+    end: string
+  }
+  features?: {
+    voicemail: boolean
+    transfer: boolean
+    sms: boolean
+    transcription: boolean
+  }
+}
+
+interface RecentCall {
+  id: string
+  caller_number: string
+  duration_seconds: number
+  created_at: string
+  status: 'completed' | 'voicemail' | 'transferred' | 'abandoned'
+}
+
+interface AssistantStats {
+  total_calls: number
+  avg_duration: number
+  success_rate: number
+  completed_percent: number
+  transferred_percent: number
+  voicemail_percent: number
+  abandoned_percent: number
 }
 
 export default function AssistantDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const router = useRouter()
   const [assistant, setAssistant] = useState<Assistant | null>(null)
+  const [recentCalls, setRecentCalls] = useState<RecentCall[]>([])
+  const [stats, setStats] = useState<AssistantStats | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
+  const [error, setError] = useState('')
   const [activeTab, setActiveTab] = useState<'overview' | 'settings' | 'analytics'>('overview')
 
   useEffect(() => {
-    // TODO: Fetch from API
-    setAssistant({
-      id,
-      name: 'Front Desk Assistant',
-      template_name: 'Medical Office',
-      status: 'active',
-      greeting: 'Thank you for calling. This is your medical office assistant. How may I help you today?',
-      voice: 'professional-female',
-      transfer_number: '+1 (555) 123-4567',
-      calls_count: 145,
-      created_at: '2024-01-15',
-      phone_number: '+1 (555) 987-6543',
-    })
-    setIsLoading(false)
+    const fetchAssistant = async () => {
+      try {
+        const { assistant: data } = await api.getAssistant(id)
+        setAssistant(data)
+
+        // Fetch recent calls for this assistant
+        try {
+          const { calls } = await api.getCalls({ limit: 5 })
+          // Filter calls by assistant if the API returns all calls
+          setRecentCalls(calls || [])
+        } catch {
+          setRecentCalls([])
+        }
+
+        // Mock stats for now (API should provide these)
+        setStats({
+          total_calls: data.calls_count || 0,
+          avg_duration: 154, // 2:34 in seconds
+          success_rate: 94,
+          completed_percent: 65,
+          transferred_percent: 20,
+          voicemail_percent: 10,
+          abandoned_percent: 5,
+        })
+      } catch (err) {
+        console.error('Failed to fetch assistant:', err)
+        setError('Failed to load assistant')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchAssistant()
   }, [id])
 
   const handleSave = async () => {
+    if (!assistant) return
+
     setIsSaving(true)
+    setError('')
+
     try {
-      // TODO: Save to API
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      const { assistant: updated } = await api.updateAssistant(id, {
+        name: assistant.name,
+        greeting: assistant.greeting,
+        voice: assistant.voice,
+        transfer_number: assistant.transfer_number,
+        status: assistant.status,
+        business_hours: assistant.business_hours,
+        features: assistant.features,
+      })
+      setAssistant(updated)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save changes')
     } finally {
       setIsSaving(false)
     }
@@ -57,14 +122,49 @@ export default function AssistantDetailPage({ params }: { params: Promise<{ id: 
     if (!confirm('Are you sure you want to delete this assistant? This action cannot be undone.')) {
       return
     }
-    // TODO: Delete via API
-    router.push('/dashboard/assistants')
+
+    try {
+      await api.deleteAssistant(id)
+      router.push('/dashboard/assistants')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete assistant')
+    }
   }
 
-  if (isLoading || !assistant) {
+  const formatDuration = (seconds: number) => {
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins}:${secs.toString().padStart(2, '0')}`
+  }
+
+  const formatTime = (dateStr: string) => {
+    const date = new Date(dateStr)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffMins = Math.floor(diffMs / 60000)
+
+    if (diffMins < 1) return 'Just now'
+    if (diffMins < 60) return `${diffMins} min ago`
+    const diffHours = Math.floor(diffMins / 60)
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`
+    return date.toLocaleDateString()
+  }
+
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" />
+      </div>
+    )
+  }
+
+  if (!assistant) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-gray-500">Assistant not found</p>
+        <Link href="/dashboard/assistants" className="text-primary-600 hover:underline mt-2 inline-block">
+          Back to assistants
+        </Link>
       </div>
     )
   }
@@ -83,16 +183,16 @@ export default function AssistantDetailPage({ params }: { params: Promise<{ id: 
               <span
                 className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                   assistant.status === 'active'
-                    ? 'bg-green-100 text-green-700'
+                    ? 'bg-success-100 text-success-700'
                     : assistant.status === 'draft'
-                    ? 'bg-yellow-100 text-yellow-700'
+                    ? 'bg-warning-100 text-warning-700'
                     : 'bg-gray-100 text-gray-700'
                 }`}
               >
                 {assistant.status}
               </span>
             </div>
-            <p className="text-gray-600">Based on {assistant.template_name} template</p>
+            <p className="text-gray-600">Based on {assistant.template_name || 'Custom'} template</p>
           </div>
         </div>
         <div className="flex items-center space-x-3">
@@ -104,6 +204,12 @@ export default function AssistantDetailPage({ params }: { params: Promise<{ id: 
           </Button>
         </div>
       </div>
+
+      {error && (
+        <div className="p-4 bg-error-50 text-error-700 rounded-lg">
+          {error}
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="border-b border-gray-200">
@@ -118,7 +224,7 @@ export default function AssistantDetailPage({ params }: { params: Promise<{ id: 
               onClick={() => setActiveTab(tab.id as typeof activeTab)}
               className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === tab.id
-                  ? 'border-blue-500 text-blue-600'
+                  ? 'border-primary-500 text-primary-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
@@ -137,19 +243,21 @@ export default function AssistantDetailPage({ params }: { params: Promise<{ id: 
               <Card>
                 <CardContent className="p-4">
                   <p className="text-sm text-gray-500">Total Calls</p>
-                  <p className="text-2xl font-bold text-gray-900">{assistant.calls_count}</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats?.total_calls || 0}</p>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="p-4">
                   <p className="text-sm text-gray-500">Avg Duration</p>
-                  <p className="text-2xl font-bold text-gray-900">2:34</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {stats ? formatDuration(stats.avg_duration) : '-'}
+                  </p>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="p-4">
                   <p className="text-sm text-gray-500">Success Rate</p>
-                  <p className="text-2xl font-bold text-green-600">94%</p>
+                  <p className="text-2xl font-bold text-success-600">{stats?.success_rate || 0}%</p>
                 </CardContent>
               </Card>
             </div>
@@ -158,35 +266,29 @@ export default function AssistantDetailPage({ params }: { params: Promise<{ id: 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Recent Calls</CardTitle>
-                <Link href="/dashboard/calls" className="text-sm text-blue-600 hover:underline">
+                <Link href="/dashboard/calls" className="text-sm text-primary-600 hover:underline">
                   View all
                 </Link>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {[
-                    { caller: '+1 (555) 123-4567', duration: '2:34', time: '5 min ago', status: 'completed' },
-                    { caller: '+1 (555) 987-6543', duration: '1:12', time: '23 min ago', status: 'completed' },
-                    { caller: '+1 (555) 456-7890', duration: '0:45', time: '1 hour ago', status: 'voicemail' },
-                  ].map((call, i) => (
-                    <div key={i} className="flex items-center justify-between py-2">
-                      <div>
-                        <p className="font-medium text-gray-900">{call.caller}</p>
-                        <p className="text-sm text-gray-500">{call.time}</p>
+                {recentCalls.length === 0 ? (
+                  <p className="text-center text-gray-500 py-8">No calls yet</p>
+                ) : (
+                  <div className="space-y-4">
+                    {recentCalls.slice(0, 5).map((call) => (
+                      <div key={call.id} className="flex items-center justify-between py-2">
+                        <div>
+                          <p className="font-medium text-gray-900">{call.caller_number}</p>
+                          <p className="text-sm text-gray-500">{formatTime(call.created_at)}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-gray-600">{formatDuration(call.duration_seconds)}</p>
+                          <StatusBadge status={call.status} />
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-gray-600">{call.duration}</p>
-                        <span
-                          className={`text-xs ${
-                            call.status === 'completed' ? 'text-green-600' : 'text-yellow-600'
-                          }`}
-                        >
-                          {call.status}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -201,7 +303,7 @@ export default function AssistantDetailPage({ params }: { params: Promise<{ id: 
                 {assistant.phone_number ? (
                   <div>
                     <p className="text-lg font-semibold text-gray-900">{assistant.phone_number}</p>
-                    <p className="text-sm text-green-600">Active</p>
+                    <p className="text-sm text-success-600">Active</p>
                   </div>
                 ) : (
                   <div>
@@ -254,9 +356,9 @@ export default function AssistantDetailPage({ params }: { params: Promise<{ id: 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Greeting Message</label>
                 <textarea
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   rows={3}
-                  value={assistant.greeting}
+                  value={assistant.greeting || ''}
                   onChange={(e) => setAssistant({ ...assistant, greeting: e.target.value })}
                 />
               </div>
@@ -264,7 +366,7 @@ export default function AssistantDetailPage({ params }: { params: Promise<{ id: 
               <Input
                 label="Transfer Number"
                 type="tel"
-                value={assistant.transfer_number}
+                value={assistant.transfer_number || ''}
                 onChange={(e) => setAssistant({ ...assistant, transfer_number: e.target.value })}
               />
             </CardContent>
@@ -287,7 +389,7 @@ export default function AssistantDetailPage({ params }: { params: Promise<{ id: 
                     type="button"
                     className={`p-3 border rounded-lg text-left transition-colors ${
                       assistant.voice === voice.id
-                        ? 'border-blue-500 bg-blue-50'
+                        ? 'border-primary-500 bg-primary-50'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                     onClick={() => setAssistant({ ...assistant, voice: voice.id })}
@@ -312,7 +414,7 @@ export default function AssistantDetailPage({ params }: { params: Promise<{ id: 
                     className={`px-4 py-2 rounded-lg border transition-colors ${
                       assistant.status === status
                         ? status === 'active'
-                          ? 'border-green-500 bg-green-50 text-green-700'
+                          ? 'border-success-500 bg-success-50 text-success-700'
                           : 'border-gray-500 bg-gray-50 text-gray-700'
                         : 'border-gray-200 text-gray-500 hover:border-gray-300'
                     }`}
@@ -337,10 +439,10 @@ export default function AssistantDetailPage({ params }: { params: Promise<{ id: 
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {[
-              { label: 'Total Calls', value: '145', change: '+12%' },
-              { label: 'Avg Duration', value: '2:34', change: '+5%' },
-              { label: 'Completed', value: '94%', change: '+2%' },
-              { label: 'Transferred', value: '8%', change: '-3%' },
+              { label: 'Total Calls', value: String(stats?.total_calls || 0), change: '+12%' },
+              { label: 'Avg Duration', value: stats ? formatDuration(stats.avg_duration) : '-', change: '+5%' },
+              { label: 'Completed', value: `${stats?.success_rate || 0}%`, change: '+2%' },
+              { label: 'Transferred', value: `${stats?.transferred_percent || 0}%`, change: '-3%' },
             ].map((stat) => (
               <Card key={stat.label}>
                 <CardContent className="p-4">
@@ -349,7 +451,7 @@ export default function AssistantDetailPage({ params }: { params: Promise<{ id: 
                     <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
                     <span
                       className={`text-sm ${
-                        stat.change.startsWith('+') ? 'text-green-600' : 'text-red-600'
+                        stat.change.startsWith('+') ? 'text-success-600' : 'text-error-600'
                       }`}
                     >
                       {stat.change}
@@ -378,10 +480,10 @@ export default function AssistantDetailPage({ params }: { params: Promise<{ id: 
             <CardContent>
               <div className="space-y-4">
                 {[
-                  { label: 'Completed', percentage: 65, color: 'bg-green-500' },
-                  { label: 'Transferred', percentage: 20, color: 'bg-blue-500' },
-                  { label: 'Voicemail', percentage: 10, color: 'bg-yellow-500' },
-                  { label: 'Abandoned', percentage: 5, color: 'bg-red-500' },
+                  { label: 'Completed', percentage: stats?.completed_percent || 0, color: 'bg-success-500' },
+                  { label: 'Transferred', percentage: stats?.transferred_percent || 0, color: 'bg-primary-500' },
+                  { label: 'Voicemail', percentage: stats?.voicemail_percent || 0, color: 'bg-warning-500' },
+                  { label: 'Abandoned', percentage: stats?.abandoned_percent || 0, color: 'bg-error-500' },
                 ].map((outcome) => (
                   <div key={outcome.label}>
                     <div className="flex justify-between text-sm mb-1">

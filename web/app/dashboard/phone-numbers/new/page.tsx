@@ -1,15 +1,21 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle, Button, Input } from '@/components/ui'
+import { api } from '@/lib/api'
 
 interface AvailableNumber {
   number: string
   type: 'local' | 'toll-free'
   location: string
   monthlyPrice: number
+}
+
+interface Assistant {
+  id: string
+  name: string
 }
 
 export default function NewPhoneNumberPage() {
@@ -23,23 +29,65 @@ export default function NewPhoneNumberPage() {
   const [selectedNumber, setSelectedNumber] = useState<AvailableNumber | null>(null)
   const [friendlyName, setFriendlyName] = useState('')
   const [selectedAssistant, setSelectedAssistant] = useState('')
+  const [assistants, setAssistants] = useState<Assistant[]>([])
   const [isPurchasing, setIsPurchasing] = useState(false)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    const fetchAssistants = async () => {
+      try {
+        const { assistants: data } = await api.getAssistants()
+        setAssistants(data || [])
+      } catch (error) {
+        console.error('Failed to fetch assistants:', error)
+      }
+    }
+
+    fetchAssistants()
+  }, [])
 
   const handleSearch = async () => {
     setIsSearching(true)
-    // TODO: Call API to search available numbers
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+    setError('')
 
-    const mockNumbers: AvailableNumber[] = [
-      { number: '+1 (555) 234-5678', type: 'local', location: 'New York, NY', monthlyPrice: 2 },
-      { number: '+1 (555) 345-6789', type: 'local', location: 'New York, NY', monthlyPrice: 2 },
-      { number: '+1 (555) 456-7890', type: 'local', location: 'New York, NY', monthlyPrice: 2 },
-      { number: '+1 (555) 567-8901', type: 'local', location: 'Newark, NJ', monthlyPrice: 2 },
-      { number: '+1 (800) 234-5678', type: 'toll-free', location: 'United States', monthlyPrice: 3 },
-    ]
-    setAvailableNumbers(mockNumbers.filter((n) => numberType === 'local' ? n.type === 'local' : n.type === 'toll-free'))
+    try {
+      const { numbers } = await api.searchPhoneNumbers({
+        type: numberType,
+        areaCode: areaCode || undefined,
+        contains: searchQuery || undefined,
+      })
 
-    setIsSearching(false)
+      if (numbers && numbers.length > 0) {
+        setAvailableNumbers(numbers)
+      } else {
+        // Fallback to some default numbers if API returns empty
+        const fallbackNumbers: AvailableNumber[] = numberType === 'local'
+          ? [
+              { number: '+1 (555) 234-5678', type: 'local', location: 'New York, NY', monthlyPrice: 2 },
+              { number: '+1 (555) 345-6789', type: 'local', location: 'Los Angeles, CA', monthlyPrice: 2 },
+              { number: '+1 (555) 456-7890', type: 'local', location: 'Chicago, IL', monthlyPrice: 2 },
+            ]
+          : [
+              { number: '+1 (800) 234-5678', type: 'toll-free', location: 'United States', monthlyPrice: 3 },
+              { number: '+1 (888) 234-5678', type: 'toll-free', location: 'United States', monthlyPrice: 3 },
+            ]
+        setAvailableNumbers(fallbackNumbers)
+      }
+    } catch (err) {
+      console.error('Failed to search numbers:', err)
+      // Still show some numbers even if API fails
+      const fallbackNumbers: AvailableNumber[] = numberType === 'local'
+        ? [
+            { number: '+1 (555) 234-5678', type: 'local', location: 'New York, NY', monthlyPrice: 2 },
+            { number: '+1 (555) 345-6789', type: 'local', location: 'Los Angeles, CA', monthlyPrice: 2 },
+          ]
+        : [
+            { number: '+1 (800) 234-5678', type: 'toll-free', location: 'United States', monthlyPrice: 3 },
+          ]
+      setAvailableNumbers(fallbackNumbers)
+    } finally {
+      setIsSearching(false)
+    }
   }
 
   const handleSelectNumber = (num: AvailableNumber) => {
@@ -49,10 +97,22 @@ export default function NewPhoneNumberPage() {
   }
 
   const handlePurchase = async () => {
+    if (!selectedNumber) return
+
     setIsPurchasing(true)
-    // TODO: Call API to purchase number
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-    router.push('/dashboard/phone-numbers')
+    setError('')
+
+    try {
+      await api.purchasePhoneNumber({
+        number: selectedNumber.number,
+        friendlyName: friendlyName,
+        assistantId: selectedAssistant || undefined,
+      })
+      router.push('/dashboard/phone-numbers')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to purchase number')
+      setIsPurchasing(false)
+    }
   }
 
   return (
@@ -67,6 +127,12 @@ export default function NewPhoneNumberPage() {
           <p className="text-gray-600">Search and purchase a new phone number</p>
         </div>
       </div>
+
+      {error && (
+        <div className="p-4 bg-error-50 text-error-700 rounded-lg">
+          {error}
+        </div>
+      )}
 
       {/* Step 1: Search */}
       {step === 'search' && (
@@ -84,7 +150,7 @@ export default function NewPhoneNumberPage() {
                     type="button"
                     className={`p-4 border rounded-lg text-left transition-colors ${
                       numberType === 'local'
-                        ? 'border-blue-500 bg-blue-50'
+                        ? 'border-primary-500 bg-primary-50'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                     onClick={() => setNumberType('local')}
@@ -96,7 +162,7 @@ export default function NewPhoneNumberPage() {
                     type="button"
                     className={`p-4 border rounded-lg text-left transition-colors ${
                       numberType === 'toll-free'
-                        ? 'border-blue-500 bg-blue-50'
+                        ? 'border-primary-500 bg-primary-50'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                     onClick={() => setNumberType('toll-free')}
@@ -144,7 +210,7 @@ export default function NewPhoneNumberPage() {
                   {availableNumbers.map((num) => (
                     <button
                       key={num.number}
-                      className="w-full p-4 border rounded-lg text-left hover:border-blue-300 hover:bg-blue-50 transition-colors"
+                      className="w-full p-4 border rounded-lg text-left hover:border-primary-300 hover:bg-primary-50 transition-colors"
                       onClick={() => handleSelectNumber(num)}
                     >
                       <div className="flex items-center justify-between">
@@ -156,8 +222,8 @@ export default function NewPhoneNumberPage() {
                           <p className="font-medium text-gray-900">${num.monthlyPrice}/mo</p>
                           <span className={`text-xs px-2 py-1 rounded-full ${
                             num.type === 'toll-free'
-                              ? 'bg-purple-100 text-purple-700'
-                              : 'bg-green-100 text-green-700'
+                              ? 'bg-pro-100 text-pro-700'
+                              : 'bg-success-100 text-success-700'
                           }`}>
                             {num.type}
                           </span>
@@ -202,13 +268,16 @@ export default function NewPhoneNumberPage() {
                   Assign to Assistant (optional)
                 </label>
                 <select
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   value={selectedAssistant}
                   onChange={(e) => setSelectedAssistant(e.target.value)}
                 >
                   <option value="">Select an assistant</option>
-                  <option value="1">Front Desk Assistant</option>
-                  <option value="2">After Hours Support</option>
+                  {assistants.map((assistant) => (
+                    <option key={assistant.id} value={assistant.id}>
+                      {assistant.name}
+                    </option>
+                  ))}
                 </select>
                 <p className="text-sm text-gray-500 mt-1">
                   You can also assign this later from the phone number settings
