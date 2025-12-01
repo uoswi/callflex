@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsup src/index.ts --format esm --no-external hono @hono/node-server",
+    "build": "tsup src/index.ts --format esm",
     "start": "node dist/index.js",
     "lint": "eslint src/"
   },
