@@ -30,13 +30,14 @@ export default function NewPhoneNumberPage() {
     // TODO: Call API to search available numbers
     await new Promise((resolve) => setTimeout(resolve, 1500))
 
-    setAvailableNumbers([
+    const mockNumbers: AvailableNumber[] = [
       { number: '+1 (555) 234-5678', type: 'local', location: 'New York, NY', monthlyPrice: 2 },
       { number: '+1 (555) 345-6789', type: 'local', location: 'New York, NY', monthlyPrice: 2 },
       { number: '+1 (555) 456-7890', type: 'local', location: 'New York, NY', monthlyPrice: 2 },
       { number: '+1 (555) 567-8901', type: 'local', location: 'Newark, NJ', monthlyPrice: 2 },
       { number: '+1 (800) 234-5678', type: 'toll-free', location: 'United States', monthlyPrice: 3 },
-    ].filter((n) => numberType === 'local' ? n.type === 'local' : n.type === 'toll-free'))
+    ]
+    setAvailableNumbers(mockNumbers.filter((n) => numberType === 'local' ? n.type === 'local' : n.type === 'toll-free'))
 
     setIsSearching(false)
   }
