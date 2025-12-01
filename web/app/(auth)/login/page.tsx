@@ -1,18 +1,34 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Button, Input, Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui'
+import { useAuth } from '@/lib/auth-context'
 
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const { signIn, user, isLoading: authLoading } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   })
+
+  useEffect(() => {
+    if (searchParams.get('registered') === 'true') {
+      setSuccess('Account created! Please sign in.')
+    }
+  }, [searchParams])
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.push('/dashboard')
+    }
+  }, [user, authLoading, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -20,29 +36,21 @@ export default function LoginPage() {
     setError('')
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/signin`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      })
-
-      const data = await res.json()
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to sign in')
-      }
-
-      // Store session
-      localStorage.setItem('session', JSON.stringify(data.session))
-      localStorage.setItem('user', JSON.stringify(data.user))
-
-      // Redirect to dashboard
+      await signIn(formData.email, formData.password)
       router.push('/dashboard')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
+      setError(err instanceof Error ? err.message : 'Invalid email or password')
     } finally {
       setIsLoading(false)
     }
+  }
+
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+      </div>
+    )
   }
 
   return (
@@ -60,6 +68,12 @@ export default function LoginPage() {
             </div>
           )}
 
+          {success && (
+            <div className="p-3 text-sm text-green-600 bg-green-50 rounded-lg">
+              {success}
+            </div>
+          )}
+
           <Input
             label="Email"
             type="email"
@@ -72,7 +86,7 @@ export default function LoginPage() {
           <Input
             label="Password"
             type="password"
-            placeholder="••••••••"
+            placeholder="Enter your password"
             value={formData.password}
             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
             required
