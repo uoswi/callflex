@@ -15,7 +15,6 @@ export default function SettingsPage() {
   const [profile, setProfile] = useState({
     fullName: '',
     email: '',
-    phone: '',
   })
 
   const [organization, setOrganization] = useState({
@@ -39,7 +38,6 @@ export default function SettingsPage() {
       setProfile({
         fullName: user.fullName || '',
         email: user.email || '',
-        phone: user.phone || '',
       })
     }
 
@@ -200,13 +198,6 @@ export default function SettingsPage() {
                 onChange={(e) => setProfile({ ...profile, email: e.target.value })}
                 disabled
                 hint="Email cannot be changed"
-              />
-
-              <Input
-                label="Phone Number"
-                type="tel"
-                value={profile.phone}
-                onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
               />
             </CardContent>
           </Card>
