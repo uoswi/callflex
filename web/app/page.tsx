@@ -95,7 +95,7 @@ export default function HomePage() {
               </Link>
               <Link
                 href="/signup"
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-all duration-300 shadow-md hover:shadow-lg"
+                className="btn-press bg-primary-600 text-white px-4 py-2.5 rounded font-medium hover:bg-primary-700 transition-all duration-300 shadow-sm hover:shadow-md"
               >
                 Start Free Trial
               </Link>
@@ -136,7 +136,7 @@ export default function HomePage() {
                   </a>
                 ))}
                 <Link href="/login" className="text-gray-600 dark:text-gray-300 py-2">Log In</Link>
-                <Link href="/signup" className="bg-blue-600 text-white px-4 py-3 rounded-lg font-medium text-center">
+                <Link href="/signup" className="btn-press bg-primary-600 text-white px-4 py-3 rounded font-medium text-center">
                   Start Free Trial
                 </Link>
               </div>
@@ -148,12 +148,12 @@ export default function HomePage() {
       {/* Hero Section */}
       <section className="pt-24 sm:pt-32 pb-16 sm:pb-20 px-4 relative overflow-hidden">
         <div className="max-w-4xl mx-auto text-center relative z-10">
-          <div className="fade-in-up inline-flex items-center bg-blue-50/80 dark:bg-blue-900/30 backdrop-blur-sm text-blue-700 dark:text-blue-300 px-3 sm:px-4 py-2 rounded-full text-sm font-medium mb-6 border border-blue-100 dark:border-blue-800">
-            <span className="w-2 h-2 bg-blue-500 rounded-full mr-2 animate-pulse"></span>
+          <div className="fade-in-up inline-flex items-center bg-primary-50/80 dark:bg-primary-900/30 backdrop-blur-sm text-primary-700 dark:text-primary-300 px-3 sm:px-4 py-2 rounded-full text-sm font-medium mb-6 border border-primary-100 dark:border-primary-800">
+            <span className="w-2 h-2 bg-success-500 rounded-full mr-2 animate-pulse"></span>
             Works for Any Business, Any Industry
           </div>
 
-          <h1 className="fade-in-up fade-in-up-delay-1 text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight mb-6 text-gray-900 dark:text-white">
+          <h1 className="fade-in-up fade-in-up-delay-1 text-4xl sm:text-5xl md:text-6xl font-semibold leading-tight mb-6 text-navy dark:text-white">
             Your AI Receptionist,<br/>
             <span className="gradient-text">Ready in 5 Minutes</span>
           </h1>
@@ -166,13 +166,13 @@ export default function HomePage() {
           <div className="fade-in-up fade-in-up-delay-3 flex flex-col sm:flex-row justify-center gap-4 mb-8 px-4">
             <Link
               href="/signup"
-              className="shimmer bg-blue-600 text-white px-6 sm:px-8 py-4 rounded-xl font-semibold text-lg hover:bg-blue-700 transition-all duration-300 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 hover:-translate-y-0.5"
+              className="shimmer btn-press bg-primary-600 text-white px-6 sm:px-8 py-4 rounded-lg font-semibold text-lg hover:bg-primary-700 transition-all duration-300 shadow-lg shadow-primary-500/30 hover:shadow-xl hover:shadow-primary-500/40 hover:-translate-y-0.5"
             >
               Start Free Trial →
             </Link>
             <a
               href="#demo"
-              className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-gray-700 dark:text-gray-200 px-6 sm:px-8 py-4 rounded-xl font-semibold text-lg hover:bg-white dark:hover:bg-gray-800 transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:-translate-y-0.5"
+              className="btn-press bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-gray-700 dark:text-gray-200 px-6 sm:px-8 py-4 rounded-lg font-semibold text-lg hover:bg-white dark:hover:bg-gray-800 transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:-translate-y-0.5"
             >
               Watch Demo
             </a>
@@ -194,7 +194,7 @@ export default function HomePage() {
       {/* Industries Section */}
       <section id="industries" className="py-16 sm:py-20 px-4 bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-4 text-gray-900 dark:text-white">Built for Your Industry</h2>
+          <h2 className="text-2xl sm:text-3xl font-semibold text-center mb-4 text-navy dark:text-white">Built for Your Industry</h2>
           <p className="text-gray-600 dark:text-gray-300 text-center mb-8 sm:mb-12 max-w-2xl mx-auto px-4">
             Choose a pre-built template for your industry, or create a custom receptionist from scratch.
           </p>
@@ -210,16 +210,16 @@ export default function HomePage() {
             ].map((industry, i) => (
               <div
                 key={i}
-                className={`card-hover block rounded-xl p-4 sm:p-6 border-2 cursor-pointer ${
+                className={`card-hover block rounded-lg p-4 sm:p-6 border-2 cursor-pointer ${
                   industry.templates === null
-                    ? 'bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/30 dark:to-purple-900/30 border-blue-200 dark:border-blue-700 pulse-glow'
-                    : 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-500'
+                    ? 'bg-gradient-to-br from-primary-50 to-purple-50 dark:from-primary-900/30 dark:to-purple-900/30 border-primary-200 dark:border-primary-700 pulse-glow'
+                    : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-primary-400 dark:hover:border-primary-500'
                 }`}
               >
                 <span className="text-3xl sm:text-4xl mb-3 sm:mb-4 block">{industry.icon}</span>
                 <h3 className="text-base sm:text-lg font-bold mb-1 sm:mb-2 text-gray-900 dark:text-white">{industry.name}</h3>
                 <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm mb-2 sm:mb-3 hidden sm:block">{industry.desc}</p>
-                <span className="text-blue-600 dark:text-blue-400 text-xs sm:text-sm font-medium">
+                <span className="text-primary-600 dark:text-primary-400 text-xs sm:text-sm font-medium">
                   {industry.templates ? `${industry.templates} templates →` : 'Start building →'}
                 </span>
               </div>
@@ -231,7 +231,7 @@ export default function HomePage() {
       {/* Features Section */}
       <section id="features" className="py-16 sm:py-20 px-4 bg-gradient-to-b from-white/80 to-slate-50/80 dark:from-gray-900/80 dark:to-gray-800/80 backdrop-blur-sm">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-4 text-gray-900 dark:text-white">Everything You Need to Never Miss a Call</h2>
+          <h2 className="text-2xl sm:text-3xl font-semibold text-center mb-4 text-navy dark:text-white">Everything You Need to Never Miss a Call</h2>
           <p className="text-gray-600 dark:text-gray-300 text-center mb-12 sm:mb-16 max-w-2xl mx-auto px-4">
             Powerful features that make your AI receptionist indistinguishable from a human assistant.
           </p>
@@ -248,7 +248,7 @@ export default function HomePage() {
               { icon: '📊', title: 'Analytics Dashboard', desc: 'Track call volume, peak hours, and common questions to optimize.' },
               { icon: '🔗', title: 'Easy Integrations', desc: 'Connect with your CRM, calendar, and other tools via Zapier or API.' },
             ].map((feature, i) => (
-              <div key={i} className="card-hover bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
+              <div key={i} className="card-hover bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
                 <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/50 dark:to-purple-900/50 rounded-lg flex items-center justify-center text-2xl mb-4">
                   {feature.icon}
                 </div>
@@ -263,7 +263,7 @@ export default function HomePage() {
       {/* How It Works Section */}
       <section id="how-it-works" className="py-16 sm:py-20 px-4 bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-4 text-gray-900 dark:text-white">Up and Running in Minutes</h2>
+          <h2 className="text-2xl sm:text-3xl font-semibold text-center mb-4 text-navy dark:text-white">Up and Running in Minutes</h2>
           <p className="text-gray-600 dark:text-gray-300 text-center mb-12 sm:mb-16 max-w-2xl mx-auto px-4">
             No technical skills required. Get your AI receptionist answering calls today.
           </p>
@@ -287,7 +287,7 @@ export default function HomePage() {
           <div className="mt-12 sm:mt-16 text-center">
             <Link
               href="/signup"
-              className="shimmer inline-flex items-center bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 sm:px-8 py-4 rounded-xl font-semibold text-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:-translate-y-0.5"
+              className="shimmer btn-press inline-flex items-center bg-gradient-to-r from-primary-600 to-pro text-white px-6 sm:px-8 py-4 rounded-lg font-semibold text-lg hover:from-primary-700 hover:to-purple-700 transition-all duration-300 shadow-lg shadow-primary-500/30 hover:shadow-xl hover:-translate-y-0.5"
             >
               Get Started Free
               <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -301,7 +301,7 @@ export default function HomePage() {
       {/* Testimonials Section */}
       <section className="py-16 sm:py-20 px-4 bg-gradient-to-b from-slate-50/80 to-white/80 dark:from-gray-800/80 dark:to-gray-900/80 backdrop-blur-sm">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-4 text-gray-900 dark:text-white">Trusted by Businesses Everywhere</h2>
+          <h2 className="text-2xl sm:text-3xl font-semibold text-center mb-4 text-navy dark:text-white">Trusted by Businesses Everywhere</h2>
           <p className="text-gray-600 dark:text-gray-300 text-center mb-12 sm:mb-16 max-w-2xl mx-auto px-4">
             See what our customers have to say about their AI receptionist.
           </p>
@@ -312,7 +312,7 @@ export default function HomePage() {
               { quote: "The driver hotline template saved us so much time. Drivers get immediate answers without tying up dispatch.", name: 'Marcus J.', role: 'Operations Manager', industry: 'Logistics' },
               { quote: "Client intake calls used to take 15 minutes each. Now the AI handles screening and books consultations.", name: 'Jennifer L.', role: 'Attorney', industry: 'Legal' },
             ].map((testimonial, i) => (
-              <div key={i} className="card-hover bg-white dark:bg-gray-800 rounded-xl p-6 sm:p-8 shadow-sm border border-gray-100 dark:border-gray-700">
+              <div key={i} className="card-hover bg-white dark:bg-gray-800 rounded-lg p-6 shadow border border-gray-200 dark:border-gray-700">
                 <div className="flex mb-4">
                   {[...Array(5)].map((_, i) => (
                     <svg key={i} className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
@@ -348,13 +348,13 @@ export default function HomePage() {
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Link
               href="/signup"
-              className="shimmer bg-white text-blue-600 px-6 sm:px-8 py-4 rounded-xl font-semibold text-lg hover:bg-blue-50 transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+              className="shimmer btn-press bg-white text-primary-600 px-6 sm:px-8 py-4 rounded-lg font-semibold text-lg hover:bg-primary-50 transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5"
             >
               Start Your Free Trial
             </Link>
             <a
               href="#pricing"
-              className="border-2 border-white text-white px-6 sm:px-8 py-4 rounded-xl font-semibold text-lg hover:bg-white/10 transition-all duration-300 hover:-translate-y-0.5"
+              className="btn-press border-2 border-white text-white px-6 sm:px-8 py-4 rounded-lg font-semibold text-lg hover:bg-white/10 transition-all duration-300 hover:-translate-y-0.5"
             >
               View Pricing
             </a>
@@ -364,9 +364,9 @@ export default function HomePage() {
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="py-16 sm:py-20 px-4 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
+      <section id="pricing" className="py-16 sm:py-20 px-4 bg-gradient-to-b from-slate-100 via-gray-50 to-white dark:from-gray-900 dark:via-gray-850 dark:to-gray-800">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-4 text-gray-900 dark:text-white">Simple Pricing</h2>
+          <h2 className="text-2xl sm:text-3xl font-semibold text-center mb-4 text-navy dark:text-white">Simple Pricing</h2>
           <p className="text-gray-600 dark:text-gray-400 text-center mb-8 sm:mb-12">All plans include transcripts, recordings, and spam blocking</p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 stagger-children">
@@ -377,10 +377,10 @@ export default function HomePage() {
             ].map((plan, i) => (
               <div
                 key={i}
-                className={`card-hover rounded-2xl p-6 sm:p-8 ${
+                className={`card-hover rounded-lg p-6 ${
                   plan.popular
-                    ? 'bg-gradient-to-br from-blue-600 to-purple-600 text-white transform md:scale-105 shadow-xl shadow-blue-500/30 glow-blue'
-                    : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700'
+                    ? 'bg-gradient-to-br from-primary-600 to-pro text-white transform md:scale-105 shadow-xl shadow-primary-500/30 glow-blue'
+                    : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-md hover:shadow-lg'
                 }`}
               >
                 <div className="flex justify-between items-center mb-2">
@@ -409,10 +409,10 @@ export default function HomePage() {
                 </ul>
                 <Link
                   href="/signup"
-                  className={`block w-full text-center py-3 rounded-lg font-medium transition ${
+                  className={`btn-press block w-full text-center py-3 rounded font-medium transition ${
                     plan.popular
-                      ? 'bg-white text-blue-600 hover:bg-blue-50'
-                      : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600'
+                      ? 'bg-white text-primary-600 hover:bg-primary-50'
+                      : 'bg-primary-600 text-white hover:bg-primary-700 shadow-sm'
                   }`}
                 >
                   Start Free Trial
@@ -490,8 +490,9 @@ export default function HomePage() {
 
             {/* Dark Mode Toggle */}
             <button
-              onClick={toggleDarkMode}
-              className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors"
+              type="button"
+              onClick={() => setDarkMode(!darkMode)}
+              className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors cursor-pointer"
             >
               {darkMode ? (
                 <>

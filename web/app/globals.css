@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
 
 @layer base {
   body {
@@ -159,6 +159,42 @@
   50% { box-shadow: 0 0 30px -5px rgba(59, 130, 246, 0.6); }
 }
 
+/* Live call indicator - from design system */
+.live-indicator {
+  animation: live-pulse 2s ease-in-out infinite;
+}
+
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Status indicator dots */
+.status-dot {
+  @apply w-2 h-2 rounded-full;
+}
+
+.status-dot-active {
+  @apply bg-success-500;
+  animation: live-pulse 2s ease-in-out infinite;
+}
+
+.status-dot-completed {
+  @apply bg-gray-500;
+}
+
+.status-dot-missed {
+  @apply bg-error-600;
+}
+
+.status-dot-transferred {
+  @apply bg-pro-500;
+}
+
+.status-dot-paused {
+  @apply bg-warning-500;
+}
+
 /* Smooth gradient border */
 .gradient-border {
   position: relative;
@@ -201,6 +237,45 @@
 @keyframes shimmer {
   0% { left: -100%; }
   100% { left: 100%; }
+}
+
+/* Button press feedback */
+.btn-press:active {
+  transform: scale(0.98);
+  transition: transform 100ms ease-out;
+}
+
+/* Accessible focus states */
+:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3);
+  border-radius: inherit;
+}
+
+/* Primary button style matching design system */
+.btn-primary {
+  @apply bg-primary-600 text-white px-4 py-2.5 font-medium shadow-sm;
+  border-radius: 8px;
+  transition: all 200ms ease-out;
+}
+
+.btn-primary:hover {
+  @apply bg-primary-700;
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+}
+
+/* Secondary button style */
+.btn-secondary {
+  @apply bg-white text-gray-700 px-4 py-2.5 font-medium border border-gray-200;
+  border-radius: 8px;
+  transition: all 200ms ease-out;
+}
+
+.btn-secondary:hover {
+  @apply bg-gray-50;
 }
 
 /* Respect reduced motion preference */

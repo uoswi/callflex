@@ -1,15 +1,15 @@
 'use client'
 
 import Link from 'next/link'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui'
+import { Card, CardContent, CardHeader, CardTitle, StatusBadge } from '@/components/ui'
 
 export default function DashboardPage() {
   return (
     <div className="space-y-8">
-      {/* Header */}
+      {/* Header - following design system */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600">Welcome back! Here&apos;s what&apos;s happening with your calls.</p>
+        <h1 className="text-2xl font-semibold text-navy">Dashboard</h1>
+        <p className="text-gray-500 mt-1">Welcome back! Here&apos;s what&apos;s happening with your calls.</p>
       </div>
 
       {/* Stats */}
@@ -44,9 +44,9 @@ export default function DashboardPage() {
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Link href="/dashboard/assistants/new">
-          <Card className="hover:border-blue-300 transition-colors cursor-pointer h-full">
-            <CardContent className="p-6 flex items-center space-x-4">
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+          <Card className="hover:border-primary-300 cursor-pointer h-full">
+            <CardContent className="flex items-center space-x-4">
+              <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center">
                 <span className="text-2xl">✨</span>
               </div>
               <div>
@@ -58,9 +58,9 @@ export default function DashboardPage() {
         </Link>
 
         <Link href="/dashboard/phone-numbers/new">
-          <Card className="hover:border-blue-300 transition-colors cursor-pointer h-full">
-            <CardContent className="p-6 flex items-center space-x-4">
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+          <Card className="hover:border-success-500 cursor-pointer h-full">
+            <CardContent className="flex items-center space-x-4">
+              <div className="w-12 h-12 bg-success-100 rounded-lg flex items-center justify-center">
                 <span className="text-2xl">📞</span>
               </div>
               <div>
@@ -72,9 +72,9 @@ export default function DashboardPage() {
         </Link>
 
         <Link href="/dashboard/calls">
-          <Card className="hover:border-blue-300 transition-colors cursor-pointer h-full">
-            <CardContent className="p-6 flex items-center space-x-4">
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+          <Card className="hover:border-pro-500 cursor-pointer h-full">
+            <CardContent className="flex items-center space-x-4">
+              <div className="w-12 h-12 bg-pro-100 rounded-lg flex items-center justify-center">
                 <span className="text-2xl">📋</span>
               </div>
               <div>
@@ -90,7 +90,7 @@ export default function DashboardPage() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Recent Calls</CardTitle>
-          <Link href="/dashboard/calls" className="text-sm text-blue-600 hover:underline">
+          <Link href="/dashboard/calls" className="text-sm text-primary-600 hover:text-primary-700 hover:underline">
             View all
           </Link>
         </CardHeader>
@@ -107,22 +107,18 @@ export default function DashboardPage() {
             </thead>
             <tbody>
               {[
-                { caller: '+1 (555) 123-4567', assistant: 'Front Desk', duration: '2:34', status: 'completed', time: '5 min ago' },
-                { caller: '+1 (555) 987-6543', assistant: 'Front Desk', duration: '1:12', status: 'completed', time: '23 min ago' },
-                { caller: '+1 (555) 456-7890', assistant: 'After Hours', duration: '0:45', status: 'voicemail', time: '1 hour ago' },
+                { caller: '+1 (555) 123-4567', assistant: 'Front Desk', duration: '2:34', status: 'completed' as const, time: '5 min ago' },
+                { caller: '+1 (555) 987-6543', assistant: 'Front Desk', duration: '1:12', status: 'completed' as const, time: '23 min ago' },
+                { caller: '+1 (555) 456-7890', assistant: 'After Hours', duration: '0:45', status: 'voicemail' as const, time: '1 hour ago' },
               ].map((call, i) => (
-                <tr key={i} className="border-b border-gray-50 hover:bg-gray-50">
+                <tr key={i} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
                   <td className="py-4 px-6">
                     <span className="font-medium text-gray-900">{call.caller}</span>
                   </td>
                   <td className="py-4 px-6 text-gray-600">{call.assistant}</td>
-                  <td className="py-4 px-6 text-gray-600">{call.duration}</td>
+                  <td className="py-4 px-6 text-gray-600 font-mono">{call.duration}</td>
                   <td className="py-4 px-6">
-                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                      call.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                    }`}>
-                      {call.status}
-                    </span>
+                    <StatusBadge status={call.status} />
                   </td>
                   <td className="py-4 px-6 text-gray-500 text-sm">{call.time}</td>
                 </tr>
@@ -152,19 +148,19 @@ function StatCard({
 }) {
   return (
     <Card>
-      <CardContent className="p-6">
+      <CardContent>
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-gray-500">{title}</p>
-            <p className="text-3xl font-bold text-gray-900 mt-1">{value}</p>
+            <p className="text-3xl font-bold text-navy mt-1">{value}</p>
             {change && (
-              <p className={`text-sm mt-1 ${trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
+              <p className={`text-sm mt-1 ${trend === 'up' ? 'text-success-600' : 'text-error-600'}`}>
                 {change}
               </p>
             )}
             {subtitle && <p className="text-sm text-gray-500 mt-1">{subtitle}</p>}
           </div>
-          <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center text-gray-600">
+          <div className="w-12 h-12 bg-primary-50 rounded-lg flex items-center justify-center text-primary-600">
             {icon}
           </div>
         </div>

@@ -43,7 +43,7 @@ export default function DashboardLayout({
         <div className="h-16 flex items-center px-6 border-b border-gray-200">
           <Link href="/dashboard" className="flex items-center space-x-2">
             <span className="text-2xl">📞</span>
-            <span className="text-xl font-bold">CallFlex</span>
+            <span className="text-xl font-bold text-navy">CallFlex</span>
           </Link>
         </div>
 
@@ -56,13 +56,13 @@ export default function DashboardLayout({
                 key={item.name}
                 href={item.href}
                 className={cn(
-                  'flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                  'flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150',
                   isActive
-                    ? 'bg-blue-50 text-blue-700'
+                    ? 'bg-primary-50 text-primary-700'
                     : 'text-gray-700 hover:bg-gray-100'
                 )}
               >
-                <item.icon className={cn('w-5 h-5 mr-3', isActive ? 'text-blue-600' : 'text-gray-400')} />
+                <item.icon className={cn('w-5 h-5 mr-3', isActive ? 'text-primary-600' : 'text-gray-400')} />
                 {item.name}
               </Link>
             )
@@ -74,12 +74,12 @@ export default function DashboardLayout({
           <div className="bg-gray-50 rounded-lg p-4">
             <div className="flex justify-between text-sm mb-2">
               <span className="text-gray-600">Minutes used</span>
-              <span className="font-medium">45 / 100</span>
+              <span className="font-medium text-gray-900">45 / 100</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
-              <div className="bg-blue-600 h-2 rounded-full" style={{ width: '45%' }} />
+              <div className="bg-primary-600 h-2 rounded-full transition-all duration-300" style={{ width: '45%' }} />
             </div>
-            <Link href="/dashboard/billing" className="text-xs text-blue-600 hover:underline mt-2 block">
+            <Link href="/dashboard/billing" className="text-xs text-primary-600 hover:text-primary-700 hover:underline mt-2 block">
               Upgrade plan
             </Link>
           </div>
@@ -110,7 +110,7 @@ export default function DashboardLayout({
               <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
             </button>
 
-            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
+            <div className="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
               JD
             </div>
           </div>
