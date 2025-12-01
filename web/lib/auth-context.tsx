@@ -37,7 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchUserData = async (authUser: User) => {
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('users')
         .select(`
           id,
@@ -71,9 +71,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             status: org.status,
           } : undefined,
         })
+      } else if (error) {
+        // Fallback: use auth user data if users table query fails
+        console.warn('Could not fetch user profile, using auth data:', error.message)
+        setUser({
+          id: authUser.id,
+          email: authUser.email || '',
+          fullName: authUser.user_metadata?.full_name || authUser.email?.split('@')[0] || 'User',
+        })
       }
     } catch (error) {
       console.error('Error fetching user data:', error)
+      // Fallback: use auth user data
+      setUser({
+        id: authUser.id,
+        email: authUser.email || '',
+        fullName: authUser.user_metadata?.full_name || authUser.email?.split('@')[0] || 'User',
+      })
     }
   }
 
